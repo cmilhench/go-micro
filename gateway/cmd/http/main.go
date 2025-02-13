@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"gateway/fabric"
 )
@@ -55,6 +56,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// TODO: detect error payload and respond accordingly
+	// Detect error payload and respond accordingly
+	status, err := strconv.Atoi(res.Header["Status"])
+	if err == nil {
+		w.WriteHeader(status)
+	}
 	fmt.Fprintln(w, string(res.Body))
 }

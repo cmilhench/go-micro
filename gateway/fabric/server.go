@@ -128,6 +128,7 @@ func (srv *Server) ListenAndServe() error {
 	if err != nil {
 		return fmt.Errorf("failed to register consumer, %s", err)
 	}
+	// TODO: Multiplex to handle requests in parallel
 	go func() {
 		for {
 			select {
@@ -146,16 +147,21 @@ func (srv *Server) ListenAndServe() error {
 				if res != nil {
 					body = res.Body
 				}
+				out := amqp.Publishing{
+					ContentType:   "text/plain",
+					CorrelationId: msg.CorrelationId,
+					Body:          body,
+					Headers:       amqp.Table{},
+				}
+				for k, v := range res.Header {
+					out.Headers[k] = v
+				}
 				err = ch.Publish(
 					"",          // exchange
 					msg.ReplyTo, // routing key
 					false,       // mandatory
 					false,       // immediate
-					amqp.Publishing{
-						ContentType:   "text/plain",
-						CorrelationId: msg.CorrelationId,
-						Body:          body,
-					})
+					out)
 				if err != nil {
 					fmt.Printf("failed to reply, %s\n", err)
 					continue

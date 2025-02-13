@@ -24,7 +24,8 @@ func main() {
 func handle(req *fabric.Request) *fabric.Response {
 	in, err := strconv.Atoi(string(req.Body))
 	if err != nil {
-		res := &fabric.Response{Header: nil, Body: []byte(err.Error()), Request: req}
+		h := map[string]string{"Status": "400"}
+		res := &fabric.Response{Header: h, Body: []byte(err.Error()), Request: req}
 		return res
 	}
 	fmt.Printf(" [.] fib(%d)\n", in)
